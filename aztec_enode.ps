@@ -1,0 +1,126 @@
+%!PS
+
+% Encoding functions
+/encu {
+  pop
+  [0 0 0 0 0]
+} bind def
+/encl {
+  pop
+  [0 0 0 0 0]
+} bind def
+/encm {
+  pop
+  [0 0 0 0 0]
+} bind def
+/encp {
+  pop
+  [0 0 0 0 0]
+} bind def
+/encd {
+  pop
+  [0 0 0 0]
+} bind def
+/encb {
+  pop
+  [0 0 0 0 0 0 0 0]
+} bind def
+/encfuncs [ /encu /encl /encm /encp /encd /encb ] def
+
+
+/input [ 34 54 23 67 ] def
+
+% State key: "U"pper, "L"ower, "M"ixed, "P"unctuation, "D"igit, "B"inary
+
+/e 10000 def  % "Empty"
+
+/latlen [  % Bit length of latch between modes
+% To:  U  L  M  P  D  B      From
+    [  0  5  5 10  5 10 ]  % U
+    [ 10  0  5 10  5 10 ]  % L
+    [  5  5  0  5 10 10 ]  % M
+    [  5 10 10  0 10 15 ]  % P
+    [  4  9  9 14  0 14 ]  % D
+    [  0  0  0  0  0  0 ]  % B
+] def
+
+/shftlen [  % Bit length of shift to mode
+% To:  U  L  M  P  D      From
+    [  e  e  e  5  e ]  % U
+    [  5  e  e  5  e ]  % L
+    [  e  e  e  5  e ]  % M
+    [  e  e  e  e  e ]  % P
+    [  4  e  e  4  e ]  % D
+] def
+
+%           U L M P D B
+/charsize [ 5 5 5 5 4 8 ] def
+
+%          U  L  M  P  D  B
+/curlen [  0  e  e  e  e  e ] def
+/curseq [ [] [] [] [] [] [] ] def
+
+/backto 0 def  % U
+
+input {
+
+  /char exch def
+
+  % Check for optimisations in the current sequences
+  0 1 5 {
+    /x exch def
+    0 1 5 {
+      /y exch def
+      curlen x get latlen x get y get add curlen y get lt {
+        curlen y curlen x get latlen x get y get add put
+        % curseq[y]=curseq[x]+latchToY
+      } if
+    } for
+  } for
+ 
+  /nxtlen [ e e e e e e ] def 
+  /nxtseq [] def
+
+  % For each valid encoding 
+  0 1 5 {
+    /x exch def
+
+    { % loop for common exit
+
+      /encchar char encfuncs x get load exec def 
+      encchar length 0 eq {exit} if  % No encoding in this state
+
+      % Extend directly
+      curlen x get charsize x get add nxtlen x get lt {
+        nxtlen x curlen x get charsize x get add put
+        % nxtseq[x]=curseq[x]+encchar
+      } if
+
+      % Optimise the next sequences for direct shifts 
+      0 1 5 {
+        /y exch def
+        x y ne {
+          curlen y get shftlen y get x get add charsize x get add nxtlen y get lt {
+            nxtlen y curlen y get shftlen y get x get add charsize x get add put
+            % nxtseq[y]=curseq[y]+shiftToX
+          } if
+        } if
+      } for
+
+      exit
+    } loop
+
+  } for
+
+  % Optimise next sequences using punctuation compression
+
+  % Binary padding
+
+
+  /curlens nxtlens def
+  /curseq nxtseq def
+
+} forall
+
+asdf
+
