@@ -1,11 +1,15 @@
 %!PS
 
+% State key: "U"pper, "L"ower, "M"ixed, "P"unctuation, "D"igit, "B"inary
+
 % Special function characters
 /ul -1 def  /ll -2 def  /ml -3 def
 /pl -4 def  /dl -5 def  /us -6 def
 /ps -7 def  /bs -8 def  /fl -9 def
 
-/charmap [
+% Character maps for each state
+/charmaps [
+  %  U    L    M    P    D
   [  ps   ps   ps   fl   ps ]  % 0
   [  32   32   32   13   32 ]  % 1
   [ (A)  (a)    1  -99  (0) ]  % 2
@@ -39,29 +43,39 @@
   [  dl   dl   pl  (})  -99 ]  % 30
   [  bs   bs   bs   ul  -99 ]  % 31
 ] def 
-charmap == asdf
 
+% Invert chartable to give character to value maps for each state
+/charvals [ 32 dict 32 dict 32 dict 32 dict 16 dict ] def
+0 1 charmaps length 1 sub {
+  /i exch def
+  /encs charmaps i get def
+  0 1 4 {
+    /j exch def
+    encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
+    charvals j get exch i put 
+  } for
+} for
 
 % Encoding functions
 /encu {
-  pop
-  [0 0 0 0 0]
+  /charval exch charvals 0 get exch get def
+  [ 4 {0} repeat charval 2 5 string cvrs {48 sub} forall ] dup length 5 sub 5 getinterval
 } bind def
 /encl {
-  pop
-  [0 0 0 0 0]
+  /charval exch charvals 1 get exch get def
+  [ 4 {0} repeat charval 2 5 string cvrs {48 sub} forall ] dup length 5 sub 5 getinterval
 } bind def
 /encm {
-  pop
-  [0 0 0 0 0]
+  /charval exch charvals 2 get exch get def
+  [ 4 {0} repeat charval 2 5 string cvrs {48 sub} forall ] dup length 5 sub 5 getinterval
 } bind def
 /encp {
-  pop
-  [0 0 0 0 0]
+  /charval exch charvals 3 get exch get def
+  [ 4 {0} repeat charval 2 5 string cvrs {48 sub} forall ] dup length 5 sub 5 getinterval
 } bind def
 /encd {
-  pop
-  [0 0 0 0]
+  /charval exch charvals 4 get exch get def
+  [ 3 {0} repeat charval 2 4 string cvrs {48 sub} forall ] dup length 4 sub 4 getinterval
 } bind def
 /encb {
   pop
@@ -69,10 +83,7 @@ charmap == asdf
 } bind def
 /encfuncs [ /encu /encl /encm /encp /encd /encb ] def
 
-
 /input [ 34 54 23 67 ] def
-
-% State key: "U"pper, "L"ower, "M"ixed, "P"unctuation, "D"igit, "B"inary
 
 /e 10000 def  % "Empty"
 
