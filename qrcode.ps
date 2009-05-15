@@ -145,6 +145,7 @@
     } {  % Simple autoencoder from input to bitstream using byte mode only for full format symbols
 
         /barlen barcode length def
+        eclevel (unset) eq {/eclevel (M) def} if
 
         % Determine smallest symbol version to hold given amount of byte-encoded data
         version (unset) eq {
@@ -171,7 +172,6 @@
                      790   842   898   958   983  1051  1093  1139  1219  1273   % V31 - V40
                 ]
             ] def
-            eclevel (unset) eq {/eclevel (M) def} if
             /caps caps (LMQH) eclevel search pop length exch pop exch pop get def
             /i 1 def
             {
@@ -188,11 +188,11 @@
         } if
         /midlen mid length def
         /termlen term length def
-    
-        % Create the bitstream: byte_mode_id + character_count + data_bytes + term
+
+        % Create the bitstream as byte_mode_id character_count data_bytes term
         /msgbits midlen cclen add barlen 8 mul add termlen add string def
         msgbits 0 mid putinterval
-        (00000000000000) 0 cclen getinterval cclen string copy 
+        (0000000000000000) 0 cclen getinterval cclen string copy 
         dup barlen cvi 2 cclen string cvrs dup length cclen exch sub exch putinterval 
         /cc exch def
         msgbits midlen cc putinterval
