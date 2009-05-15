@@ -76,7 +76,7 @@
     /dontdraw false def
     /format (full) def     % full or micro
     /version (unset) def
-    /eclevel (L) def       % L, M, Q or H
+    /eclevel (unset) def   % L, M, Q or H
     /raw false def
 
     % Parse the input options
@@ -171,8 +171,14 @@
                      790   842   898   958   983  1051  1093  1139  1219  1273   % V31 - V40
                 ]
             ] def
-            % TODO 
-            /version (4) def
+            eclevel (unset) eq {/eclevel (M) def} if
+            /caps caps (LMQH) eclevel search pop length exch pop exch pop get def
+            /i 1 def
+            {
+                barlen caps i 1 sub get le {exit} if 
+                /i i 1 add def
+            } loop
+            /version i 10 2 string cvrs def
         } if
 
         % Set the control character data for the version
