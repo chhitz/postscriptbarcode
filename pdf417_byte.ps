@@ -97,7 +97,7 @@
     /rows rows cvi def
     /rowmult rowmult cvr def
 
-    % Split the input barcode into an array of codewords
+    % Convert input into array of codewords
     raw {
         /datcws barcode length array def
         /i 0 def /j 0 def
@@ -110,11 +110,53 @@
         } loop
         /datcws datcws 0 j getinterval def
     } {  % Simple autoencoder from input to codewords using byte mode
-asdf
+        /barlen barcode length def
+        barlen 6 mod 0 eq {
+            /datcws barlen 6 idiv 5 mul 1 add array def
+            datcws 0 924 put
+        } {
+            /datcws barlen 6 idiv 5 mul barlen 6 mod add 1 add array def
+            datcws 0 901 put 
+        } ifelse
 
+        % Rebase groups of 6 bytes splitting into 3 byte chunks
+        0 1 barlen 6 idiv 1 sub {
+            /i exch def
+            /msbs [ barcode i 6 mul 3 getinterval {} forall ] def
+            /mscs [
+                msbs aload pop exch 256 mul add exch 65536 mul add 
+                3 {dup 900 mod exch 900 idiv} repeat 
+            ] def
+            /lsbs [barcode i 6 mul 3 add 3 getinterval {} forall] def
+            /lscs [
+                lsbs aload pop exch 256 mul add exch 65536 mul add
+                3 {dup 900 mod exch 900 idiv} repeat
+            ] def
+            /cws 5 array def
+            lscs 0 get mscs 0 get 316 mul add
+            cws 4 2 index 900 mod put
+            900 idiv lscs 1 get add mscs 0 get 641 mul add mscs 1 get 316 mul add
+            cws 3 2 index 900 mod put 
+            900 idiv lscs 2 get add mscs 0 get 20 mul add mscs 1 get 641 mul add mscs 2 get 316 mul add 
+            cws 2 2 index 900 mod put
+            900 idiv lscs 3 get add mscs 1 get 20 mul add mscs 2 get 641 mul add
+            cws 1 2 index 900 mod put
+            900 idiv mscs 2 get 20 mul add
+            cws 0 3 -1 roll 900 mod put
+            datcws i 5 mul 1 add cws putinterval 
+        } for
 
+        % Add the remaining bytes to the end of the codewords
+        /rem barlen 6 mod def
+        rem 0 ne {
+            datcws datcws length rem sub 
+            [ barcode barlen rem sub rem getinterval {} forall ] 
+            putinterval
+        } if
 
     } ifelse
+
+    datcws aload pop asdf
 
     % Determine the error correction level if unspecified
     /m datcws length def
@@ -500,7 +542,7 @@ asdf
 
 gsave
 150 150 translate
-0 0 moveto (ABC) () pdf417
+0 0 moveto (ABCDEFGH) () pdf417
 grestore
 
 showpage
