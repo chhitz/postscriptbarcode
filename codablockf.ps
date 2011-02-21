@@ -70,11 +70,8 @@ begin
     /barlen barcode length def
 
     % Convert input into bytes accounting for FNC characters 
-    /swa  -1 def  /swb  -2 def  /swc  -3 def 
-    /sa1  -4 def  /sb1  -5 def  /sc1  -6 def 
-    /sa2  -7 def  /sb2  -8 def  /sc2  -9 def 
-    /pad -10 def  /sb3 -11 def  /sc3 -12 def
-    /fn1 -13 def  /fn2 -14 def  /fn3 -15 def  /fn4 -16 def
+    /swa -1 def  /swb -2 def  /swc -3 def  /sft -4 def
+    /fn1 -5 def  /fn2 -6 def  /fn3 -7 def  /fn4 -8 def
 
     % Character maps for each state
     /charmaps [
@@ -111,10 +108,9 @@ begin
       [  23  (w)  (87) ]  [  24  (x)  (88) ]  [  25  (y)  (89) ]  % 87-89
       [  26  (z)  (90) ]  [  27  ({)  (91) ]  [  28  (|)  (92) ]  % 90-92
       [  29  (})  (93) ]  [  30  (~)  (94) ]  [  31  127  (95) ]  % 93-95
-      [ fn3  fn3  (96) ]  [ fn2  fn2  (97) ]  [ sb1  sa1  (98) ]  % 96-98
+      [ fn3  fn3  (96) ]  [ fn2  fn2  (97) ]  [ sft  sft  (98) ]  % 96-98
       [ swc  swc  (99) ]  [ swb  fn4  swb  ]  [ fn4  swa  swa  ]  % 99-101
-      [ fn1  fn1  fn1  ]  [ pad  pad  pad  ]  [ sb2  sa2  sb1  ]  % 102-104
-      [ sc2  sc2  sb2  ]  [ sc3  sc3  sb3  ]                      % 105-106
+      [ fn1  fn1  fn1  ]                                          % 102
     ] def 
     
     % Invert charmaps to give character to value maps for each state
@@ -623,8 +619,7 @@ begin
       (413111) (241112) (134111) (111242) (121142) (121241) (114212)
       (124112) (124211) (411212) (421112) (421211) (212141) (214121)
       (412121) (111143) (111341) (131141) (114113) (114311) (411113)
-      (411311) (113141) (114131) (311141) (411131) (211412) (211214)
-      (211232) (211133)
+      (411311) (113141) (114131) (311141) (411131) (211412) (2331112)
     ] def
 
     % Start/stop character encodings
