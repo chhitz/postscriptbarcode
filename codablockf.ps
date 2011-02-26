@@ -121,160 +121,127 @@ begin
     /setb charvals 1 get def
     /setc charvals 2 get def
 
-    encoding (auto) eq { 
-
-        /fncvals <<
-            (FNC1) fn1
-            (FNC2) fn2
-            (FNC3) fn3
-            (FNC4) fn4
-        >> def
-        /msg barlen array def
-        /i 0 def /j 0 def {
-            i barlen eq {exit} if
-            /char barcode i get def
-            parsefnc char 94 eq and i barlen 4 sub lt and {
-                barcode i 1 add get 94 ne {
-                    /char fncvals barcode i 1 add 4 getinterval get def
-                    /i i 4 add def
-                } {
-                    /i i 1 add def
-                } ifelse
-            } if
-            msg j char put
-            /i i 1 add def
-            /j j 1 add def
-        } loop
-        /msg msg 0 j getinterval def
-        /msglen msg length def
- 
-        % Determine digit runlength and characters from given position
-        /numsscr {
-            /n 0 def /s 0 def
-            /p exch def {
-                p msglen ge {exit} if
-                msg p get
-                dup setc exch known not {pop exit} if
-                dup 48 lt exch 57 gt or {
-                    % Non-digit in odd position of run like two digits
-                    s 2 mod 0 eq {/s s 1 add def} {exit} ifelse
-                } if
-                /n n 1 add def
-                /s s 1 add def
-                /p p 1 add def
-            } loop
-            n s
-        } bind def
-
-        % Encoding for each alphabet
-        /enca {
-            seta exch get cws exch j exch put
-            /j j 1 add def
-        } bind def
-        /encb {
-            setb exch get cws exch j exch put
-            /j j 1 add def
-        } bind def
-        /encc {
-            dup type /arraytype ne {
-                setc exch get cws exch j exch put
-                /j j 1 add def
+    /fncvals <<
+        (FNC1) fn1
+        (FNC2) fn2
+        (FNC3) fn3
+        (FNC4) fn4
+    >> def
+    /msg barlen array def
+    /i 0 def /j 0 def {
+        i barlen eq {exit} if
+        /char barcode i get def
+        parsefnc char 94 eq and i barlen 4 sub lt and {
+            barcode i 1 add get 94 ne {
+                /char fncvals barcode i 1 add 4 getinterval get def
+                /i i 4 add def
             } {
-                /in exch def
-                /k 0 def {
-                    k in length eq {exit} if
-                    in k get dup 48 lt exch 57 gt or {
-                        setc in k get get
-                        /k k 1 add def
-                    } {
-                        in k get 48 sub 10 mul in k 1 add get 48 sub add
-                        /k k 2 add def
-                    } ifelse
-                    cws exch j exch put
-                    /j j 1 add def
-                } loop
+                /i i 1 add def
             } ifelse
-        } bind def
-
-        % Character exclusively in either alphabet A or B
-        /anotb {dup seta exch known exch setb exch known not and} bind def
-        /bnota {dup setb exch known exch seta exch known not and} bind def
-
-        % Pre-compute relative position of next anotb and next bnota characters
-        /nextanotb [ msg length {0} repeat 9999 ] def
-        /nextbnota [ msg length {0} repeat 9999 ] def
-        msg length 1 sub -1 0 {
-            /i exch def
-            msg i get anotb {
-                nextanotb i 0 put
-            } {
-                nextanotb i nextanotb i 1 add get 1 add put
-            } ifelse
-            msg i get bnota {
-                nextbnota i 0 put
-            } {
-                nextbnota i nextbnota i 1 add get 1 add put
-            } ifelse
-        } for
-
-        % Does a-only come before b-only after given position and vice versa
-        /abeforeb {dup nextanotb exch get exch nextbnota exch get lt} bind def
-        /bbeforea {dup nextbnota exch get exch nextanotb exch get lt} bind def
- 
-        /cws barcode length 2 mul 3 add array def
-
-       
-    } if  % auto encoding
-    
-    % Basic metrics for the each symbol
-    %     r  dcws 
-    /metrics [
-        [  2    7 ]
-        [  3   12 ]
-        [  4   17 ]
-        [  5   22 ]
-        [  6   27 ]
-        [  7   32 ]
-        [  8   37 ]
-        [  9   42 ]
-        [ 10   47 ]
-        [ 11   52 ]
-        [ 12   57 ]
-        [ 13   62 ]
-        [ 14   67 ]
-        [ 15   72 ]
-        [ 16   77 ]
-    ] def
-
-    % Select metrics of an appropriate symbol
-    /urows rows def
-    /i 0 def
-    { % loop
-        /m metrics i get def
-        /r    m 0 get def        % Columns in symbol
-        /dcws m 1 get def        % Data codewords in symbol
-        /okay true def
-        urows 0 ne urows r ne and {/okay false def} if
-        cws length dcws gt {/okay false def} if
-        okay {exit} if
+        } if
+        msg j char put
         /i i 1 add def
+        /j j 1 add def
     } loop
+    /msg msg 0 j getinterval def
+    /msglen msg length def
+ 
+    % Determine digit runlength and characters from given position
+    /numsscr {
+        /n 0 def /s 0 def
+        /p exch def {
+            p msglen ge {exit} if
+            msg p get
+            dup setc exch known not {pop exit} if
+            dup 48 lt exch 57 gt or {
+                % Non-digit in odd position of run like two digits
+                s 2 mod 0 eq {/s s 1 add def} {exit} ifelse
+            } if
+            /n n 1 add def
+            /s s 1 add def
+            /p p 1 add def
+        } loop
+        n s
+    } bind def
 
+    % Encoding for each alphabet
+    /enca {
+        seta exch get cws exch j exch put
+        /j j 1 add def
+    } bind def
+    /encb {
+        setb exch get cws exch j exch put
+        /j j 1 add def
+    } bind def
+    /encc {
+        dup type /arraytype ne {
+            setc exch get cws exch j exch put
+            /j j 1 add def
+        } {
+            /in exch def
+            /k 0 def {
+                k in length eq {exit} if
+                in k get dup 48 lt exch 57 gt or {
+                    setc in k get get
+                    /k k 1 add def
+                } {
+                    in k get 48 sub 10 mul in k 1 add get 48 sub add
+                    /k k 2 add def
+                } ifelse
+                cws exch j exch put
+                /j j 1 add def
+            } loop
+        } ifelse
+    } bind def
+
+    % Character exclusively in either alphabet A or B
+    /anotb {dup seta exch known exch setb exch known not and} bind def
+    /bnota {dup setb exch known exch seta exch known not and} bind def
+
+    % Pre-compute relative position of next anotb and next bnota characters
+    /nextanotb [ msg length {0} repeat 9999 ] def
+    /nextbnota [ msg length {0} repeat 9999 ] def
+    msg length 1 sub -1 0 {
+        /i exch def
+        msg i get anotb {
+            nextanotb i 0 put
+        } {
+            nextanotb i nextanotb i 1 add get 1 add put
+        } ifelse
+        msg i get bnota {
+            nextbnota i 0 put
+        } {
+            nextbnota i nextbnota i 1 add get 1 add put
+        } ifelse
+    } for
+
+    % Does a-only come before b-only after given position and vice versa
+    /abeforeb {dup nextanotb exch get exch nextbnota exch get lt} bind def
+    /bbeforea {dup nextbnota exch get exch nextanotb exch get lt} bind def
+
+    % TODO encode each row 
+    /cws barcode length 2 mul 3 add array def
+       
 %    % Extend cws to ncws codewords by addition of pad characters
 %    /cws [ cws aload pop dcws cws length sub {103} repeat ] def
 
     % Calculate the symbol check characters
-    /chkmsg [ 65 49 50 51 241 ] def  % TODO dummy
+    /chkmsg msglen array def
+    /j 0 def
+    0 1 msglen 1 sub {
+        /i exch def
+        /char msg i get def
+        char 0 ge {chkmsg j char put /j j 1 add def} if
+        char fn1 eq i 0 ne and {chkmsg j 29 put /j j 1 add def} if
+    } for
     /t1 0 def /t2 0 def /k1 0 def /k2 0 def
-    0 1 chkmsg length 1 sub {
+    0 1 j 1 sub {
         /i exch def
         /t1 chkmsg i get i mul 86 mod def
         /t2 t1 chkmsg i get add 86 mod def
         /k1 k1 t2 add 86 mod def
         /k2 k2 t1 add 86 mod def
     } for
-
-k1 k2 asdf
 
     % Create an array containing the character mappings
     /encs
