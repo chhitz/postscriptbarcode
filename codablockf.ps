@@ -225,6 +225,14 @@ begin
 %    % Extend cws to ncws codewords by addition of pad characters
 %    /cws [ cws aload pop dcws cws length sub {103} repeat ] def
 
+    % Maps for row indicators and symbol checksums
+    /abmap [
+        64 1 95 {} for
+        0 1 15 {} for
+        26 1 63 {} for
+    ] def
+    /cmap [ 0 1 85 {} for ] def
+
     % Calculate the symbol check characters
     /chkmsg msglen array def
     /j 0 def
@@ -242,6 +250,9 @@ begin
         /k1 k1 t2 add 86 mod def
         /k2 k2 t1 add 86 mod def
     } for
+/cset (seta) def  % TODO dummy
+    /c1 cset (setc) ne {abmap} {cmap} ifelse k1 get def
+    /c2 cset (setc) ne {abmap} {cmap} ifelse k2 get def
 
     % Create an array containing the character mappings
     /encs
