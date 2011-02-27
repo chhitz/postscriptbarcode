@@ -228,7 +228,7 @@ begin
     % Maps for row indicators and symbol checksums
     /abmap [
         64 1 95 {} for
-        0 1 15 {} for
+         0 1 15 {} for
         26 1 63 {} for
     ] def
     /cmap [ 0 1 85 {} for ] def
@@ -273,45 +273,56 @@ begin
       (411311) (113141) (114131) (311141) (411131) (211412) (2331112)
     ] def
 
+/r 6 def /c 5 def  % TODO dummy
+/cws [ 
+103 100 68  65 66 67 68 69  1 104
+103 100 11  65 66 67 68 69  2 104
+103 100 12  65 66 67 68 69  3 104
+103  99 45  65 66 67 68 69  4 104
+103  99 46  65 66 67 68 69  5 104
+103  98 15  65 66 67 68 69  6 104
+] def
+
     % Derive the bits for each row
     /rowbits r array def
     0 1 r 1 sub {
         /i exch def
         /sbs [
-            startencs i get {48 sub} forall
-            1
-            cws i 5 mul 5 getinterval {
+            cws i c 5 add mul c 5 add getinterval {
                 encs exch get {48 sub} forall
             } forall 
-            stopencs i get {48 sub} forall
-            1
         ] def
         mark
-        1 sbs {1 index 0 eq {{1}} {{0}} ifelse repeat} forall
+        0 sbs {1 index 1 eq {{0}} {{1}} ifelse repeat} forall
         counttomark 1 sub array astore exch pop exch pop
         rowbits i 3 -1 roll put
     } for
 
     % Populate the bitmap
+    /symwid c 11 mul 57 add def
     /pixs [
-        81 sepheight mul {1} repeat
+        symwid sepheight mul {1} repeat
         0 1 r 2 sub {
             /i exch def
             rowheight {rowbits i get aload pop} repeat
-            sepheight {10 {0} repeat 70 {1} repeat 0} repeat
+            sepheight {
+                1 1 0 1 0 0 0 0 1 0 0
+                symwid 24 sub {1} repeat
+                1 1 0 0 0 1 1 1 0 1 0 1 1
+            } repeat
         } for
         rowheight {rowbits r 1 sub get aload pop} repeat
-        81 sepheight mul {1} repeat
+        symwid sepheight mul {1} repeat
     ] def
     
     % Return the arguments
     <<
     /ren //renmatrix
     /pixs pixs
-    /pixx 81
-    /pixy pixs length 81 idiv
-    /height pixs length 81 idiv 72 div
-    /width 81 72 div
+    /pixx symwid
+    /pixy pixs length symwid idiv
+    /height pixs length symwid idiv 72 div
+    /width symwid 72 div
     /opt options
     >>
 
@@ -325,7 +336,7 @@ end
 /setpacking where {pop setpacking} if
 % --END ENCODER codablockf--
 
-2 2 scale
-50 150 moveto (ABC) () /codablockf /uk.co.terryburton.bwipp findresource exec
+4 dup scale
+10 50 moveto (ABC) () /codablockf /uk.co.terryburton.bwipp findresource exec
 
 showpage
