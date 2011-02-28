@@ -18,6 +18,7 @@ begin
 
     /dontdraw false def
     /rows 0 def
+    /cols 5 def
     /rowheight 8 def
     /sepheight 1 def
     /encoding (auto) def
@@ -36,6 +37,7 @@ begin
     options {def} forall
 
     /rows rows cvi def
+    /cols cols cvi def
     /rowheight rowheight cvi def
     /sepheight sepheight cvi def
 
@@ -145,7 +147,35 @@ begin
     } loop
     /msg msg 0 j getinterval def
     /msglen msg length def
- 
+
+    % Maps for row indicators and symbol checksums
+    /abmap [
+        64 1 95 {} for
+         0 1 15 {} for
+        26 1 63 {} for
+    ] def
+    /cmap [ 0 1 85 {} for ] def
+
+    % Calculate the symbol check characters
+    /chkmsg msglen array def
+    /j 0 def
+    0 1 msglen 1 sub {
+        /i exch def
+        /char msg i get def
+        char 0 ge {chkmsg j char put /j j 1 add def} if
+        char fn1 eq i 0 ne and {chkmsg j 29 put /j j 1 add def} if
+    } for
+    /t1 0 def /t2 0 def /k1 0 def /k2 0 def
+    0 1 j 1 sub {
+        /i exch def
+        /t1 chkmsg i get i mul 86 mod def
+        /t2 t1 chkmsg i get add 86 mod def
+        /k1 k1 t2 add 86 mod def
+        /k2 k2 t1 add 86 mod def
+    } for
+%    /c1 cset (setc) ne {abmap} {cmap} ifelse k1 get def
+%    /c2 cset (setc) ne {abmap} {cmap} ifelse k2 get def
+
     % Determine digit runlength and characters from given position
     /numsscr {
         /n 0 def /s 0 def
@@ -153,8 +183,8 @@ begin
             p msglen ge {exit} if
             msg p get
             dup setc exch known not {pop exit} if
-            dup 48 lt exch 57 gt or {
-                % Non-digit in odd position of run like two digits
+            fn1 eq {
+                % FNC1 in odd position of run like two digits
                 s 2 mod 0 eq {/s s 1 add def} {exit} ifelse
             } if
             /n n 1 add def
@@ -175,23 +205,12 @@ begin
     } bind def
     /encc {
         dup type /arraytype ne {
-            setc exch get cws exch j exch put
-            /j j 1 add def
+            setc exch get
         } {
-            /in exch def
-            /k 0 def {
-                k in length eq {exit} if
-                in k get dup 48 lt exch 57 gt or {
-                    setc in k get get
-                    /k k 1 add def
-                } {
-                    in k get 48 sub 10 mul in k 1 add get 48 sub add
-                    /k k 2 add def
-                } ifelse
-                cws exch j exch put
-                /j j 1 add def
-            } loop
+            aload pop 48 sub exch 48 sub 10 mul add
         } ifelse
+        cws exch j exch put
+        /j j 1 add def
     } bind def
 
     % Character exclusively in either alphabet A or B
@@ -219,40 +238,122 @@ begin
     /abeforeb {dup nextanotb exch get exch nextbnota exch get lt} bind def
     /bbeforea {dup nextbnota exch get exch nextanotb exch get lt} bind def
 
-    % TODO encode each row 
-    /cws barcode length 2 mul 3 add array def
-       
-%    % Extend cws to ncws codewords by addition of pad characters
-%    /cws [ cws aload pop dcws cws length sub {103} repeat ] def
+    /encoderow {
+        % Select start character
+        /j 0 def
+        msglen 0 gt {0 numsscr} {-1 -1} ifelse /nums exch def /nchars exch def
+        {  % common exit
+            msglen 0 eq {
+                stb enca
+                /cset (setb) def
+                exit
+            } if
+            msglen 2 eq nums 2 eq and {
+                stc enca
+                /cset (setc) def
+                exit
+            } if
+            nums 4 ge {
+                stc enca
+                /cset (setc) def
+                exit
+            } if
+            0 abeforeb { 
+                sta enca
+                /cset (seta) def
+                exit 
+            } if 
+            stb enca
+            /cset (setb) def
+            exit
+        } loop
 
-    % Maps for row indicators and symbol checksums
-    /abmap [
-        64 1 95 {} for
-         0 1 15 {} for
-        26 1 63 {} for
-    ] def
-    /cmap [ 0 1 85 {} for ] def
+        % Main encoding loop
+        /i 0 def {  
+            i msglen eq {exit} if
+        
+            i numsscr /nums exch def /nchars exch def
+        
+            % Determine switches and shifts
+            {  % common exit
+                cset (seta) eq cset (setb) eq or nums 4 ge and 
+                msg i get fn1 ne and {
+                    nums 2 mod 0 eq {
+                        swc cset (seta) eq {enca} {encb} ifelse
+                        /cset (setc) def
+                        exit
+                    } {
+                        msg i get cset (seta) eq {enca} {encb} ifelse
+                        /i i 1 add def
+                        swc cset (seta) eq {enca} {encb} ifelse
+                        /cset (setc) def
+                        exit
+                    } ifelse
+                } if
+                cset (setb) eq msg i get anotb and { 
+                    i msglen 1 sub lt {
+                        i 1 add bbeforea { 
+                            sft encb
+                            msg i get enca
+                            /i i 1 add def
+                            exit
+                        } if
+                    } if
+                    swa encb
+                    /cset (seta) def
+                    exit
+                } if
+                cset (seta) eq msg i get bnota and {
+                    i msglen 1 sub lt {
+                        i 1 add abeforeb {
+                            sft enca
+                            msg i get encb
+                            /i i 1 add def
+                            exit
+                        } if
+                    } if
+                    swb enca
+                    /cset (setb) def
+                    exit
+                } if
+                cset (setc) eq nums 2 lt and {
+                    i abeforeb {
+                        swa encc
+                        /cset (seta) def
+                        exit
+                    } if
+                    swb encc
+                    /cset (setb) def
+                    exit
+                } if
+        
+                % No switches or latches so encode
+                cset (seta) eq {
+                    msg i get enca
+                    /i i 1 add def
+                } if
+                cset (setb) eq {
+                    msg i get encb
+                    /i i 1 add def
+                } if
+                cset (setc) eq {
+                    msg i get fn1 eq {
+                        fn1 encc
+                        /i i 1 add def
+                    } {
+                        msg i 2 getinterval encc
+                        /i i 2 add def 
+                    } ifelse
+                } if
+         
+                exit
+            } loop
+        
+        } loop
+    } bind def
+   
+    /cws barcode length 2 mul 3 add array def  % TODO scale
 
-    % Calculate the symbol check characters
-    /chkmsg msglen array def
-    /j 0 def
-    0 1 msglen 1 sub {
-        /i exch def
-        /char msg i get def
-        char 0 ge {chkmsg j char put /j j 1 add def} if
-        char fn1 eq i 0 ne and {chkmsg j 29 put /j j 1 add def} if
-    } for
-    /t1 0 def /t2 0 def /k1 0 def /k2 0 def
-    0 1 j 1 sub {
-        /i exch def
-        /t1 chkmsg i get i mul 86 mod def
-        /t2 t1 chkmsg i get add 86 mod def
-        /k1 k1 t2 add 86 mod def
-        /k2 k2 t1 add 86 mod def
-    } for
-/cset (seta) def  % TODO dummy
-    /c1 cset (setc) ne {abmap} {cmap} ifelse k1 get def
-    /c2 cset (setc) ne {abmap} {cmap} ifelse k2 get def
 
     % Create an array containing the character mappings
     /encs
