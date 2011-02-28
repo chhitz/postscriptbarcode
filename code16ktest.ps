@@ -257,8 +257,8 @@ begin
                 p msglen ge {exit} if
                 msg p get
                 dup setc exch known not {pop exit} if
-                dup 48 lt exch 57 gt or {
-                    % Non-digit in odd position of run like two digits
+                fn1 eq {
+                    % FNC1 in odd position of run like two digits
                     s 2 mod 0 eq {/s s 1 add def} {exit} ifelse
                 } if
                 /n n 1 add def
@@ -279,23 +279,12 @@ begin
         } bind def
         /encc {
             dup type /arraytype ne {
-                setc exch get cws exch j exch put
-                /j j 1 add def
+                setc exch get
             } {
-                /in exch def
-                /k 0 def {
-                    k in length eq {exit} if
-                    in k get dup 48 lt exch 57 gt or {
-                        setc in k get get
-                        /k k 1 add def
-                    } {
-                        in k get 48 sub 10 mul in k 1 add get 48 sub add
-                        /k k 2 add def
-                    } ifelse
-                    cws exch j exch put
-                    /j j 1 add def
-                } loop
+                aload pop 48 sub exch 48 sub 10 mul add
             } ifelse
+            cws exch j exch put
+            /j j 1 add def
         } bind def
 
         % Character exclusively in either alphabet A or B
@@ -459,8 +448,15 @@ begin
                         nums 4 eq 
                         seta msg i 4 add get known and {
                             sc2 enca
-                            msg i nchars getinterval encc
-                            /i i nchars add def
+                            2 {
+                                msg i get fn1 eq {
+                                    fn1 encc
+                                    /i i 1 add def
+                                } {
+                                    msg i 2 getinterval encc
+                                    /i i 2 add def 
+                                } ifelse
+                            } repeat
                             exit
                         } if
                     } if
@@ -469,8 +465,15 @@ begin
                         nums 6 eq 
                         seta msg i 6 add get known and {
                             sc3 enca
-                            msg i nchars getinterval encc 
-                            /i i nchars add def
+                            3 {
+                                msg i get fn1 eq {
+                                    fn1 encc
+                                    /i i 1 add def
+                                } {
+                                    msg i 2 getinterval encc
+                                    /i i 2 add def
+                                } ifelse
+                            } repeat
                             exit
                         } if
                     } if
@@ -519,8 +522,15 @@ begin
                         nums 4 eq
                         setb msg i 4 add get known and {
                             sc2 encb
-                            msg i nchars getinterval encc
-                            /i i nchars add def
+                            2 {
+                                msg i get fn1 eq {
+                                    fn1 encc
+                                    /i i 1 add def
+                                } {
+                                    msg i 2 getinterval encc
+                                    /i i 2 add def
+                                } ifelse
+                            } repeat
                             exit
                         } if
                     } if
@@ -529,8 +539,15 @@ begin
                         nums 6 eq
                         setb msg i 6 add get known and {
                             sc3 encb
-                            msg i nchars getinterval encc
-                            /i i nchars add def
+                            3 {
+                                msg i get fn1 eq {
+                                    fn1 encc
+                                    /i i 1 add def
+                                } {
+                                    msg i 2 getinterval encc
+                                    /i i 2 add def
+                                } ifelse
+                            } repeat
                             exit
                         } if
                     } if
@@ -548,12 +565,12 @@ begin
                 cset (setc) eq {
                     % 2+ nums => encode
                     nums 2 ge {
-                        nums 2 mod 0 eq {
-                            msg i nchars getinterval encc
-                            /i i nchars add def
+                        msg i get fn1 eq {
+                            fn1 encc
+                            /i i 1 add def
                         } {
-                            msg i nchars 1 sub getinterval encc
-                            /i i nchars 1 sub add def
+                            msg i 2 getinterval encc
+                            /i i 2 add def
                         } ifelse
                         exit
                     } if
