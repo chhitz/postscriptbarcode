@@ -67,6 +67,7 @@ begin
     % Convert input into bytes accounting for FNC characters 
     /swa -1 def  /swb -2 def  /swc -3 def  /sft -4 def
     /fn1 -5 def  /fn2 -6 def  /fn3 -7 def  /fn4 -8 def
+    /sta -9 def  /stp -10 def
 
     % Character maps for each state
     /charmaps [
@@ -105,11 +106,11 @@ begin
       [  29  (})  (93) ]  [  30  (~)  (94) ]  [  31  127  (95) ]  % 93-95
       [ fn3  fn3  (96) ]  [ fn2  fn2  (97) ]  [ sft  sft  (98) ]  % 96-98
       [ swc  swc  (99) ]  [ swb  fn4  swb  ]  [ fn4  swa  swa  ]  % 99-101
-      [ fn1  fn1  fn1  ]                                          % 102
-    ] def 
+      [ fn1  fn1  fn1  ]  [ sta  sta  sta  ]  [ stp  stp  stp  ]  % 102-104
+    ] def
     
     % Invert charmaps to give character to value maps for each state
-    /charvals [ 109 dict 109 dict 109 dict ] def
+    /charvals [ 105 dict 105 dict 105 dict ] def
     0 1 charmaps length 1 sub {
         /i exch def
         /encs charmaps i get def
@@ -122,7 +123,7 @@ begin
     /seta charvals 0 get def
     /setb charvals 1 get def
     /setc charvals 2 get def
-
+    
     /fncvals <<
         (FNC1) fn1
         (FNC2) fn2
@@ -147,34 +148,6 @@ begin
     } loop
     /msg msg 0 j getinterval def
     /msglen msg length def
-
-    % Maps for row indicators and symbol checksums
-    /abmap [
-        64 1 95 {} for
-         0 1 15 {} for
-        26 1 63 {} for
-    ] def
-    /cmap [ 0 1 85 {} for ] def
-
-    % Calculate the symbol check characters
-    /chkmsg msglen array def
-    /j 0 def
-    0 1 msglen 1 sub {
-        /i exch def
-        /char msg i get def
-        char 0 ge {chkmsg j char put /j j 1 add def} if
-        char fn1 eq i 0 ne and {chkmsg j 29 put /j j 1 add def} if
-    } for
-    /t1 0 def /t2 0 def /k1 0 def /k2 0 def
-    0 1 j 1 sub {
-        /i exch def
-        /t1 chkmsg i get i mul 86 mod def
-        /t2 t1 chkmsg i get add 86 mod def
-        /k1 k1 t2 add 86 mod def
-        /k2 k2 t1 add 86 mod def
-    } for
-%    /c1 cset (setc) ne {abmap} {cmap} ifelse k1 get def
-%    /c2 cset (setc) ne {abmap} {cmap} ifelse k2 get def
 
     % Determine digit runlength and characters from given position
     /numsscr {
@@ -238,35 +211,33 @@ begin
     /abeforeb {dup nextanotb exch get exch nextbnota exch get lt} bind def
     /bbeforea {dup nextbnota exch get exch nextanotb exch get lt} bind def
 
-    /encoderow {
-        % Select start character
+%    /encoderow {
+/cws 100 array def  % TODO dummy
+        % TODO Add start character and code subset selector
         /j 0 def
+        sta enca
         msglen 0 gt {0 numsscr} {-1 -1} ifelse /nums exch def /nchars exch def
         {  % common exit
             msglen 0 eq {
-                stb enca
+                swb enca
                 /cset (setb) def
                 exit
             } if
-            msglen 2 eq nums 2 eq and {
-                stc enca
-                /cset (setc) def
-                exit
-            } if
-            nums 4 ge {
-                stc enca
+            nums 2 ge {
+                swc enca
                 /cset (setc) def
                 exit
             } if
             0 abeforeb { 
-                sta enca
+                sft enca
                 /cset (seta) def
                 exit 
             } if 
-            stb enca
+            swb enca
             /cset (setb) def
             exit
         } loop
+        /j j 1 add def  % Skip row indicator position
 
         % Main encoding loop
         /i 0 def {  
@@ -350,10 +321,60 @@ begin
             } loop
         
         } loop
-    } bind def
+        /j j 1 add def  % Skip row checksum character and add stop character
+        stp enca
+%    } bind def
    
+    % TODO ensure 2 <= r <= 44
+    
     /cws barcode length 2 mul 3 add array def  % TODO scale
 
+/r 6 def /c 5 def  % TODO dummy
+/cws [ 
+103 100 /a  65 66 67 68 69 /c 104
+103 100 /a  65 66 67 68 69 /c 104
+103 100 /a  65 66 67 68 69 /c 104
+103  99 /a  65 66 67 68 69 /c 104
+103  99 /a  65 66 67 68 69 /c 104
+103  98 /a  65 66 67 /x /y /c 104
+] def
+
+    % Maps for row indicators and symbol checksums
+    /abmap [
+        64 1 95 {} for
+         0 1 15 {} for
+        26 1 63 {} for
+    ] def
+    /cmap [ 0 1 85 {} for ] def
+    
+    % Add symbol check characters to last row
+    /chkmsg msglen array def
+    /j 0 def
+    0 1 msglen 1 sub {
+        /i exch def
+        /char msg i get def
+        char 0 ge {chkmsg j char put /j j 1 add def} if
+        char fn1 eq i 0 ne and {chkmsg j 29 put /j j 1 add def} if
+    } for
+    /t1 0 def /t2 0 def /k1 0 def /k2 0 def
+    0 1 j 1 sub {
+        /i exch def
+        /t1 chkmsg i get i mul 86 mod def
+        /t2 t1 chkmsg i get add 86 mod def
+        /k1 k1 t2 add 86 mod def
+        /k2 k2 t1 add 86 mod def
+    } for
+    cws cws length 4 sub cset (setc) ne {abmap} {cmap} ifelse k1 get put
+    cws cws length 3 sub cset (setc) ne {abmap} {cmap} ifelse k2 get put
+
+    % TODO Populate row indicators
+    cws 2 2 copy 1 sub get 99 ne {abmap} {cmap} ifelse r 2 sub get put
+    1 1 r 1 sub {
+        /i exch def
+        cws i c 5 add mul 2 add 2 copy 1 sub get 99 ne {abmap} {cmap} ifelse i 41 add get put
+    } for
+
+    % TODO Calculate row check characters
 
     % Create an array containing the character mappings
     /encs
@@ -373,16 +394,6 @@ begin
       (412121) (111143) (111341) (131141) (114113) (114311) (411113)
       (411311) (113141) (114131) (311141) (411131) (211412) (2331112)
     ] def
-
-/r 6 def /c 5 def  % TODO dummy
-/cws [ 
-103 100 68  65 66 67 68 69  1 104
-103 100 11  65 66 67 68 69  2 104
-103 100 12  65 66 67 68 69  3 104
-103  99 45  65 66 67 68 69  4 104
-103  99 46  65 66 67 68 69  5 104
-103  98 15  65 66 67 68 69  6 104
-] def
 
     % Derive the bits for each row
     /rowbits r array def
