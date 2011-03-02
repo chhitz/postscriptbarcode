@@ -302,10 +302,12 @@ begin
                 cset (seta) eq {
                     msg i get enca
                     /i i 1 add def
+                    exit
                 } if
                 cset (setb) eq {
                     msg i get encb
                     /i i 1 add def
+                    exit
                 } if
                 cset (setc) eq {
                     msg i get fn1 eq {
@@ -315,13 +317,16 @@ begin
                         msg i 2 getinterval encc
                         /i i 2 add def 
                     } ifelse
+                    exit
                 } if
          
+                % TODO Unable to encode so new row
+
                 exit
             } loop
         
         } loop
-        /j j 1 add def  % Skip row checksum character and add stop character
+        /j j 1 add def  % Skip row checksum character positions
         stp enca
 %    } bind def
    
