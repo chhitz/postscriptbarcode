@@ -331,12 +331,12 @@ begin
 
 /r 6 def /c 5 def  % TODO dummy
 /cws [ 
-103 100 /a  65 66 67 68 69 /c 104
-103 100 /a  65 66 67 68 69 /c 104
-103 100 /a  65 66 67 68 69 /c 104
-103  99 /a  65 66 67 68 69 /c 104
-103  99 /a  65 66 67 68 69 /c 104
-103  98 /a  65 66 67 /x /y /c 104
+103 100 /a  65 65 65 65 65  /c 104
+103 100 /a  65 65 65 65 65  /c 104
+103 100 /a  65 65 65 65 65  /c 104
+103  99 /a  65 65 65 65 65  /c 104
+103  99 /a  65 65 65 65 65  /c 104
+103  98 /a  65 65 65 /x /y  /c 104
 ] def
 
     % Maps for row indicators and symbol checksums
@@ -367,14 +367,23 @@ begin
     cws cws length 4 sub cset (setc) ne {abmap} {cmap} ifelse k1 get put
     cws cws length 3 sub cset (setc) ne {abmap} {cmap} ifelse k2 get put
 
-    % TODO Populate row indicators
+    % Populate row indicators
     cws 2 2 copy 1 sub get 99 ne {abmap} {cmap} ifelse r 2 sub get put
     1 1 r 1 sub {
         /i exch def
-        cws i c 5 add mul 2 add 2 copy 1 sub get 99 ne {abmap} {cmap} ifelse i 41 add get put
+        cws i c 5 add mul 2 add 2 copy 1 sub get 99 ne {abmap} {cmap} ifelse i 42 add get put
     } for
 
-    % TODO Calculate row check characters
+    % Calculate row check characters
+    0 1 r 1 sub {
+        cws exch c 5 add mul c 4 add getinterval /rcws exch def
+        /csum rcws 0 get def
+        1 1 rcws length 2 sub {
+            /i exch def
+            /csum csum rcws i get i mul add def
+        } for
+        rcws rcws length 1 sub csum 103 mod put
+    } for
 
     % Create an array containing the character mappings
     /encs
