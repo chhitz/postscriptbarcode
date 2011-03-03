@@ -211,9 +211,11 @@ begin
     /abeforeb {dup nextanotb exch get exch nextbnota exch get lt} bind def
     /bbeforea {dup nextbnota exch get exch nextanotb exch get lt} bind def
 
-%    /encoderow {
-/cws 100 array def  % TODO dummy
-        % TODO Add start character and code subset selector
+    % TODO Convert message to codewords
+    % TODO ensure 2 <= r <= 44
+    /cws c 44 mul array def
+
+        % Add start character and code subset selector
         /j 0 def
         sta enca
         msglen 0 gt {0 numsscr} {-1 -1} ifelse /nums exch def /nchars exch def
@@ -328,11 +330,8 @@ begin
         } loop
         /j j 1 add def  % Skip row checksum character positions
         stp enca
-%    } bind def
-   
-    % TODO ensure 2 <= r <= 44
-    
-    /cws barcode length 2 mul 3 add array def  % TODO scale
+
+cws == asdf
 
 /r 4 def /c 8 def  % TODO dummy
 /cws [ 
