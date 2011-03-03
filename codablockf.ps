@@ -19,7 +19,7 @@ begin
     /dontdraw false def
     /rows 0 def
     /cols 5 def
-    /rowheight 8 def
+    /rowheight 10 def
     /sepheight 1 def
     /encoding (auto) def
     /parse false def
@@ -334,15 +334,15 @@ begin
     
     /cws barcode length 2 mul 3 add array def  % TODO scale
 
-/r 6 def /c 5 def  % TODO dummy
+/r 4 def /c 8 def  % TODO dummy
 /cws [ 
-103 100 /a  65 65 65 65 65  /c 104
-103 100 /a  65 65 65 65 65  /c 104
-103 100 /a  65 65 65 65 65  /c 104
-103  99 /a  65 65 65 65 65  /c 104
-103  99 /a  65 65 65 65 65  /c 104
-103  98 /a  65 65 65 /x /y  /c 104
+103 100 /a  35 47 36 33 34 44 47 35  /c 104   % CODABLOC
+103 100 /a  43 00 38 00 99 34 56 78  /c 104   % K F 345678
+103  99 /a  90 12 34 56 78 90 10 04  /c 104   % 9012345678901004
+103 100 /a  16 68 73 71 73 84 /x /y  /c 104   % 0digit
 ] def
+/msg [ (CODABLOCK F 34567890123456789010040digit) {} forall ] def
+/msglen msg length def
 
     % Maps for row indicators and symbol checksums
     /abmap [
@@ -463,6 +463,6 @@ end
 % --END ENCODER codablockf--
 
 4 dup scale
-10 50 moveto (ABC) () /codablockf /uk.co.terryburton.bwipp findresource exec
+5 50 moveto (ABC) () /codablockf /uk.co.terryburton.bwipp findresource exec
 
 showpage
