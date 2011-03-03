@@ -343,6 +343,17 @@ begin
 ] def
 /msg [ (CODABLOCK F 34567890123456789010040digit) {} forall ] def
 /msglen msg length def
+/cset (setb) def
+
+/r 3 def /c 8 def  % TODO dummy
+/cws [ 
+103 100 /a  35 47 36 33 34 44 47 35  /c 104   % CODABLOC
+103 100 /a  43 00 38 00 51 89 77 66  /c 104   % K F Symb
+103 100 /a  79 76 79 71 89 99 /x /y  /c 104   % ology(swc)
+] def
+/msg [ (CODABLOCK F Symbology) {} forall ] def
+/msglen msg length def
+/cset (setc) def
 
     % Maps for row indicators and symbol checksums
     /abmap [
