@@ -17,7 +17,7 @@ begin
     /barcode exch def
 
     /dontdraw false def
-    /rows 0 def
+    /rows -1 def
     /cols 5 def
     /rowheight 10 def
     /sepheight 1 def
@@ -40,6 +40,9 @@ begin
     /cols cols cvi def
     /rowheight rowheight cvi def
     /sepheight sepheight cvi def
+
+    cols 4 ge cols 62 le and 
+    rows 2 ge rows 44 le and rows -1 eq or and {/c cols def} if
 
     % Parse ordinals of the form ^NNN to ASCII
     parse {
@@ -150,6 +153,7 @@ begin
     /msglen msg length def
 
     % Determine digit runlength and characters from given position
+    % TODO window to rowcws
     /numsscr {
         /n 0 def /s 0 def
         /p exch def {
@@ -210,15 +214,18 @@ begin
     % Does a-only come before b-only after given position and vice versa
     /abeforeb {dup nextanotb exch get exch nextbnota exch get lt} bind def
     /bbeforea {dup nextbnota exch get exch nextanotb exch get lt} bind def
-
+    
     % TODO Convert message to codewords
-    % TODO ensure 2 <= r <= 44
-    /cws c 44 mul array def
+    % TODO expand to urows if set 
+    /cws c rows -1 ne {rows} {44} ifelse mul array def
+
+    /i 0 def /j 0 def /r 0 def {
+
+        i msglen eq {exit} if
 
         % Add start character and code subset selector
-        /j 0 def
         sta enca
-        msglen 0 gt {0 numsscr} {-1 -1} ifelse /nums exch def /nchars exch def
+        i msglen lt {i numsscr} {-1 -1} ifelse /nums exch def /nchars exch def
         {  % common exit
             msglen 0 eq {
                 swb enca
@@ -230,7 +237,7 @@ begin
                 /cset (setc) def
                 exit
             } if
-            0 abeforeb { 
+            i abeforeb { 
                 sft enca
                 /cset (seta) def
                 exit 
@@ -242,28 +249,52 @@ begin
         /j j 1 add def  % Skip row indicator position
 
         % Main encoding loop
-        /i 0 def {  
-            i msglen eq {exit} if
+        /endofrow false def
+        {
+            i msglen eq endofrow or {exit} if
         
             i numsscr /nums exch def /nchars exch def
-        
+            /rem c 3 add j c 5 add mod sub def  % Codewords to end of row
+
             % Determine switches and shifts
             {  % common exit
                 cset (seta) eq cset (setb) eq or nums 4 ge and 
                 msg i get fn1 ne and {
-                    nums 2 mod 0 eq {
+                    nums 2 mod 0 eq
+                    rem 3 ge and {
                         swc cset (seta) eq {enca} {encb} ifelse
                         /cset (setc) def
+                        2 {
+                            msg i get fn1 eq {
+                                fn1 encc
+                                /i i 1 add def
+                            } {
+                                msg i 2 getinterval encc
+                                /i i 2 add def
+                            } ifelse
+                        } repeat
                         exit
-                    } {
+                    } if
+                    nums 2 mod 0 ne
+                    rem 4 ge and {
                         msg i get cset (seta) eq {enca} {encb} ifelse
                         /i i 1 add def
                         swc cset (seta) eq {enca} {encb} ifelse
                         /cset (setc) def
+                        2 {
+                            msg i get fn1 eq {
+                                fn1 encc
+                                /i i 1 add def
+                            } {
+                                msg i 2 getinterval encc
+                                /i i 2 add def
+                            } ifelse
+                        } repeat
                         exit
-                    } ifelse
+                    } if
                 } if
-                cset (setb) eq msg i get anotb and { 
+                cset (setb) eq msg i get anotb and 
+                rem 2 ge and { 
                     i msglen 1 sub lt {
                         i 1 add bbeforea { 
                             sft encb
@@ -274,9 +305,12 @@ begin
                     } if
                     swa encb
                     /cset (seta) def
+                    msg i get enca
+                    /i i 1 add def
                     exit
                 } if
-                cset (seta) eq msg i get bnota and {
+                cset (seta) eq msg i get bnota and
+                rem 2 ge and {
                     i msglen 1 sub lt {
                         i 1 add abeforeb {
                             sft enca
@@ -287,31 +321,41 @@ begin
                     } if
                     swb enca
                     /cset (setb) def
-                    exit
-                } if
-                cset (setc) eq nums 2 lt and {
-                    i abeforeb {
-                        swa encc
-                        /cset (seta) def
-                        exit
-                    } if
-                    swb encc
-                    /cset (setb) def
-                    exit
-                } if
-        
-                % No switches or latches so encode
-                cset (seta) eq {
-                    msg i get enca
-                    /i i 1 add def
-                    exit
-                } if
-                cset (setb) eq {
                     msg i get encb
                     /i i 1 add def
                     exit
                 } if
-                cset (setc) eq {
+                cset (setc) eq nums 2 lt and
+                rem 2 ge and {
+                    i abeforeb {
+                        swa encc
+                        /cset (seta) def
+                        msg i get enca
+                        /i i 1 add def
+                        exit
+                    } if
+                    swb encc
+                    /cset (setb) def
+                    msg i get encb
+                    /i i 1 add def
+                    exit
+                } if
+        
+                % No switches or latches so try to encode
+                cset (seta) eq seta msg i get known and
+                rem 1 ge and {
+                    msg i get enca
+                    /i i 1 add def
+                    exit
+                } if
+                cset (setb) eq setb msg i get known and
+                rem 1 ge and {
+                    msg i get encb
+                    /i i 1 add def
+                    exit
+                } if
+                cset (setc) eq nums 2 ge and
+                rem 1 ge and {
                     msg i get fn1 eq {
                         fn1 encc
                         /i i 1 add def
@@ -321,15 +365,19 @@ begin
                     } ifelse
                     exit
                 } if
-         
-                % TODO Unable to encode so new row
 
+                % TODO Pad to end of row
+                rem {fn1 enca} repeat
+                /r r 1 add def
+                /endofrow true def
                 exit
-            } loop
+            } loop  % common exit
         
         } loop
         /j j 1 add def  % Skip row checksum character positions
         stp enca
+
+    } loop
 
 cws == asdf
 
@@ -473,6 +521,6 @@ end
 % --END ENCODER codablockf--
 
 4 dup scale
-5 50 moveto (ABC) () /codablockf /uk.co.terryburton.bwipp findresource exec
+5 50 moveto (abcd^001F) (parse) /codablockf /uk.co.terryburton.bwipp findresource exec
 
 showpage
