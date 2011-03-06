@@ -18,7 +18,7 @@ begin
 
     /dontdraw false def
     /rows -1 def
-    /cols 5 def
+    /cols 8 def
     /rowheight 10 def
     /sepheight 1 def
     /encoding (auto) def
@@ -214,14 +214,19 @@ begin
     % Does a-only come before b-only after given position and vice versa
     /abeforeb {dup nextanotb exch get exch nextbnota exch get lt} bind def
     /bbeforea {dup nextbnota exch get exch nextanotb exch get lt} bind def
-    
-    % TODO Convert message to codewords
-    % TODO expand to urows if set 
-    /cws c rows -1 ne {rows} {44} ifelse mul array def
 
-    /i 0 def /j 0 def /r 0 def {
+    % TODO Add padding to row
+    /padrow {
+        {fn1 enca} repeat
+    } bind def
 
-        i msglen eq {exit} if
+    % Convert message to codewords
+    /cws c 5 add rows -1 ne {rows} {44} ifelse mul array def
+
+    /i 0 def /j 0 def /r 1 def
+    /lastrow false def {
+        
+        lastrow {exit} if
 
         % Add start character and code subset selector
         sta enca
@@ -249,12 +254,12 @@ begin
         /j j 1 add def  % Skip row indicator position
 
         % Main encoding loop
-        /endofrow false def
-        {
+        /endofrow false def {
+            /rem c 3 add j c 5 add mod sub def  % Codewords to end of row
+
             i msglen eq endofrow or {exit} if
         
             i numsscr /nums exch def /nchars exch def
-            /rem c 3 add j c 5 add mod sub def  % Codewords to end of row
 
             % Determine switches and shifts
             {  % common exit
@@ -366,41 +371,52 @@ begin
                     exit
                 } if
 
-                % TODO Pad to end of row
-                rem {fn1 enca} repeat
-                /r r 1 add def
+                % Encoding does not fit in the row
                 /endofrow true def
                 exit
+
             } loop  % common exit
-        
+
         } loop
-        /j j 1 add def  % Skip row checksum character positions
-        stp enca
+
+        % Determine whether this is the final row
+        r rows eq rows -1 eq or i msglen eq and rem 2 ge and {
+            rem 2 sub padrow
+            /j j 3 add def  % Skip symbol and row checksum character positions
+            stp enca
+            /lastrow true def
+        } {
+            rem padrow
+            /j j 1 add def  % Skip row checksum character positions
+            stp enca
+            /r r 1 add def
+        } ifelse
 
     } loop
+    /cws cws 0 j getinterval def
 
 cws == asdf
 
-/r 4 def /c 8 def  % TODO dummy
-/cws [ 
-103 100 /a  35 47 36 33 34 44 47 35  /c 104   % CODABLOC
-103 100 /a  43 00 38 00 99 34 56 78  /c 104   % K F 345678
-103  99 /a  90 12 34 56 78 90 10 04  /c 104   % 9012345678901004
-103 100 /a  16 68 73 71 73 84 /x /y  /c 104   % 0digit
-] def
-/msg [ (CODABLOCK F 34567890123456789010040digit) {} forall ] def
-/msglen msg length def
-/cset (setb) def
-
-/r 3 def /c 8 def  % TODO dummy
-/cws [ 
-103 100 /a  35 47 36 33 34 44 47 35  /c 104   % CODABLOC
-103 100 /a  43 00 38 00 51 89 77 66  /c 104   % K F Symb
-103 100 /a  79 76 79 71 89 99 /x /y  /c 104   % ology(swc)
-] def
-/msg [ (CODABLOCK F Symbology) {} forall ] def
-/msglen msg length def
-/cset (setc) def
+%/r 4 def /c 8 def  % TODO dummy
+%/cws [ 
+%103 100 /a  35 47 36 33 34 44 47 35  /c 104   % CODABLOC
+%103 100 /a  43 00 38 00 99 34 56 78  /c 104   % K F 345678
+%103  99 /a  90 12 34 56 78 90 10 04  /c 104   % 9012345678901004
+%103 100 /a  16 68 73 71 73 84 /x /y  /c 104   % 0digit
+%] def
+%/msg [ (CODABLOCK F 34567890123456789010040digit) {} forall ] def
+%/msglen msg length def
+%/cset (setb) def
+%
+%/r 3 def /c 8 def  % TODO dummy
+%/cws [ 
+%103 100 /a  35 47 36 33 34 44 47 35  /c 104   % CODABLOC
+%103 100 /a  43 00 38 00 51 89 77 66  /c 104   % K F Symb
+%103 100 /a  79 76 79 71 89 99 /x /y  /c 104   % ology(swc)
+%] def
+%/msg [ (CODABLOCK F Symbology) {} forall ] def
+%/msglen msg length def
+%/cset (setc) def
 
     % Maps for row indicators and symbol checksums
     /abmap [
@@ -521,6 +537,8 @@ end
 % --END ENCODER codablockf--
 
 4 dup scale
-5 50 moveto (abcd^001F) (parse) /codablockf /uk.co.terryburton.bwipp findresource exec
+%5 50 moveto (aaaA^001AAAAAAAAAAAAAAAAAAAAAAAAA) (parse) /codablockf /uk.co.terryburton.bwipp findresource exec
+%5 50 moveto (CODABLOCK F 34567890123456789010040digit) (parse cols=8) /codablockf /uk.co.terryburton.bwipp findresource exec
+5 50 moveto (CODABLOCK F Symbology) (parse cols=8) /codablockf /uk.co.terryburton.bwipp findresource exec
 
 showpage
