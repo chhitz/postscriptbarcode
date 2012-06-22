@@ -57,28 +57,26 @@
         dup barlen cvi 2 cclen string cvrs dup length cclen exch sub exch putinterval 
         /cc exch def
         msgbits midlen cc putinterval
-
-/i 0 def /j midlen cclen add def {
-  i barlen eq {exit} if
-  i barlen 2 sub lt {
-    (0000000000) 10 string copy
-    dup barcode i 3 getinterval cvi 2 10 string cvrs dup length 10 exch sub exch putinterval
-    /i i 3 add def
-  } {
-    i barlen 2 sub eq {  % Two final digits
-      (0000000) 7 string copy
-      dup barcode i 2 getinterval cvi 2 7 string cvrs dup length 7 exch sub exch putinterval
-      /i i 2 add def
-    } {  % One final digit
-      (0000) 4 string copy
-      dup barcode i 1 getinterval cvi 2 4 string cvrs dup length 4 exch sub exch putinterval
-      /i i 1 add def
-    } ifelse
-  } ifelse
-  dup msgbits exch j exch putinterval
-  length j add /j exch def
-} loop
-
+        /i 0 def /j midlen cclen add def {
+            i barlen eq {exit} if
+            i barlen 2 sub lt {
+                (0000000000) 10 string copy
+                dup barcode i 3 getinterval cvi 2 10 string cvrs dup length 10 exch sub exch putinterval
+                /i i 3 add def
+            } {
+                i barlen 2 sub eq {  % Two final digits
+                    (0000000) 7 string copy
+                    dup barcode i 2 getinterval cvi 2 7 string cvrs dup length 7 exch sub exch putinterval
+                    /i i 2 add def
+                } {  % One final digit
+                    (0000) 4 string copy
+                    dup barcode i 1 getinterval cvi 2 4 string cvrs dup length 4 exch sub exch putinterval
+                    /i i 1 add def
+                } ifelse
+            } ifelse
+            dup msgbits exch j exch putinterval
+            length j add /j exch def
+        } loop
         msgbits j term putinterval
         /msgbits msgbits 0 j termlen add getinterval def
 
