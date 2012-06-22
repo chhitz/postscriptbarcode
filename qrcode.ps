@@ -51,15 +51,14 @@
         /termlen term length def
 
         % Create the bitstream as numeric_mode_id character_count bitstream term
-        /msgbits midlen cclen add barlen 8 mul add termlen add string def
+        /msgbits midlen cclen add barlen 10 mul 3 idiv 1 add add termlen add string def
         msgbits 0 mid putinterval
-        (0000000000000000) 0 cclen getinterval cclen string copy 
+        (00000000000000) 0 cclen getinterval cclen string copy 
         dup barlen cvi 2 cclen string cvrs dup length cclen exch sub exch putinterval 
         /cc exch def
         msgbits midlen cc putinterval
 
-/msg barlen 10 mul 3 idiv 1 add string def
-/i 0 def /j 0 def {
+/i 0 def /j midlen cclen add def {
   i barlen eq {exit} if
   i barlen 2 sub lt {
     (0000000000) 10 string copy
@@ -76,9 +75,12 @@
       /i i 1 add def
     } ifelse
   } ifelse
-  dup msg exch j exch putinterval
+  dup msgbits exch j exch putinterval
   length j add /j exch def
 } loop
-/msg msg 0 j getinterval def
 
-        msgbits midlen cclen add barlen 8 mul add term putinterval
+        msgbits j term putinterval
+        /msgbits msgbits 0 j termlen add getinterval def
+
+msgbits == asdf
+
