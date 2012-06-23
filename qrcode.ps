@@ -168,76 +168,87 @@ begin
         % Alphanumeric character to value map
         /charmap (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:) def
         /charvals 44 dict def
+        0 1 44 {dup charmap exch get exch charvals 3 1 roll put} for
  
         /encnumeric {
-% barlen 10 mul 3 idiv 1 add
-            0 1 44 {dup charmap exch get exch charvals 3 1 roll put} for
+            /in exch def
+            /out in length 10 mul 3 idiv 1 add string def
             /i 0 def /j 0 def {
-                i barlen eq {exit} if
-                i barlen 2 sub lt {
+                i in length eq {exit} if
+                i in length 2 sub lt {
                     (0000000000) 10 string copy
-                    dup barcode i 3 getinterval cvi 2 10 string cvrs dup length 10 exch sub exch putinterval
+                    dup in i 3 getinterval cvi
+                    2 10 string cvrs dup length 10 exch sub exch putinterval
                     /i i 3 add def
                 } {
-                    i barlen 2 sub eq {  % Two final digits
+                    i in length 2 sub eq {  % Two final digits
                         (0000000) 7 string copy
-                        dup barcode i 2 getinterval cvi 2 7 string cvrs dup length 7 exch sub exch putinterval
+                        dup in i 2 getinterval cvi
+                        2 7 string cvrs dup length 7 exch sub exch putinterval
                         /i i 2 add def
                     } {  % One final digit
                         (0000) 4 string copy
-                        dup barcode i 1 getinterval cvi 2 4 string cvrs dup length 4 exch sub exch putinterval
+                        dup in i 1 getinterval cvi
+                        2 4 string cvrs dup length 4 exch sub exch putinterval
                         /i i 1 add def
                     } ifelse
                 } ifelse
-                dup msgbits exch j exch putinterval
+                dup out exch j exch putinterval
                 length j add /j exch def
             } loop
-% trim to j
+            out 0 j getinterval
         } bind def
 
         /encalphanumeric {
-% barlen 10 mul 3 idiv 1 add
+            /in exch def
+            /out in length 10 mul 3 idiv 1 add string def
             /i 0 def /j 0 def {
-                i barlen eq {exit} if
-                i barlen 1 sub lt {
+                i in length eq {exit} if
+                i in length 1 sub lt {
                     (00000000000) 11 string copy
-                    dup charvals barcode i get get 45 mul charvals barcode i 1 add get get add
+                    dup charvals in i get get 45 mul charvals in i 1 add get get add
                     2 11 string cvrs dup length 11 exch sub exch putinterval
                     /i i 2 add def
                 } {
                     (000000) 6 string copy
-                    dup charvals barcode i get get
+                    dup charvals in i get get
                     2 6 string cvrs dup length 6 exch sub exch putinterval
                     /i i 1 add def
                 } ifelse
-                dup msgbits exch j exch putinterval
+                dup out exch j exch putinterval
                 length j add /j exch def
             } loop
-% trim to j
+            out 0 j getinterval
         } bind def
 
         /encbyte {
-% barlen 8 mul
-            0 1 barlen 1 sub {
+            /in exch def
+            /out in length 8 mul string def
+            0 1 in length 1 sub {
                 /i exch def
-                (00000000) 8 string copy dup barcode i get cvi 2 8 string cvrs dup length 8 exch sub exch putinterval 
-                msgbits i 8 mul 3 -1 roll putinterval
+                (00000000) 8 string copy
+                dup in i get cvi
+                2 8 string cvrs dup length 8 exch sub exch putinterval 
+                out i 8 mul 3 -1 roll putinterval
             } for
+            out
         } bind def
 
         /enckanji {
-% TODO check: barlen 2 idiv 11 mul add
+            /in exch def
+            /out in length 2 idiv 11 mul add def
             /i 0 def /j 0 def {
-                i barlen eq {exit} if
-                barcode i get 256 mul barcode i 1 add get add
+                i in length eq {exit} if
+                in i get 256 mul in i 1 add get add
                 dup 16#E040 lt {16#8140} {16#C140} ifelse sub
                 dup -8 bitshift 16#C0 mul exch 16#00FF and add
                 (0000000000000) 13 string copy
                 dup 3 -1 roll 2 13 string cvrs dup length 13 exch sub exch putinterval
-                dup msgbits exch j exch putinterval
+                dup out exch j exch putinterval
                 length j add /j exch def
                 /i i 2 add def
             } loop
+            out 0 j getinterval
         } bind def
 
         % Determine smallest symbol version to hold given amount of data
@@ -262,7 +273,7 @@ begin
         /termlen term length def
  
         % Create the bitstream as mode_id character_count encoded_data term
-        /enc barcode encs encoding get load exec def
+        /enc barcode encs encoding get load exec asdf def
         (0000000000000000) 0 cclen getinterval cclen string copy 
         dup barlen cvi 2 cclen string cvrs dup length cclen exch sub exch putinterval 
         /cc exch def
@@ -854,5 +865,6 @@ asdf
 end
 /setpacking where {pop setpacking} if
 
-245 125 moveto <935fe4aa> (encoding=kanji eclevel=H) /qrcode /uk.co.terryburton.bwipp findresource exec
+%245 125 moveto <935fe4aa> (encoding=kanji eclevel=H) /qrcode /uk.co.terryburton.bwipp findresource exec
+245 125 moveto (01234567) (encoding=numeric) /qrcode /uk.co.terryburton.bwipp findresource exec
 
