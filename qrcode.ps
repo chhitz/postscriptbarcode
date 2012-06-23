@@ -169,7 +169,7 @@ begin
         /charmap (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:) def
         /charvals 44 dict def
         0 1 44 {dup charmap exch get exch charvals 3 1 roll put} for
- 
+
         /encnumeric {
             /in exch def
             /out in length 10 mul 3 idiv 1 add string def
@@ -201,7 +201,7 @@ begin
 
         /encalphanumeric {
             /in exch def
-            /out in length 10 mul 3 idiv 1 add string def
+            /out in length 11 mul 2 idiv 1 add string def
             /i 0 def /j 0 def {
                 i in length eq {exit} if
                 i in length 1 sub lt {
@@ -236,7 +236,7 @@ begin
 
         /enckanji {
             /in exch def
-            /out in length 2 idiv 11 mul add def
+            /out in length 2 idiv 13 mul string def
             /i 0 def /j 0 def {
                 i in length eq {exit} if
                 in i get 256 mul in i 1 add get add
@@ -248,7 +248,7 @@ begin
                 length j add /j exch def
                 /i i 2 add def
             } loop
-            out 0 j getinterval
+            out
         } bind def
 
         % Determine smallest symbol version to hold given amount of data
@@ -272,8 +272,8 @@ begin
         /midlen mid length def
         /termlen term length def
  
-        % Create the bitstream as mode_id character_count encoded_data term
-        /enc barcode encs encoding get load exec asdf def
+        % Create the bitstream as mode_id character_count encoded_data terminator
+        /enc barcode encs encoding get load exec def
         (0000000000000000) 0 cclen getinterval cclen string copy 
         dup barlen cvi 2 cclen string cvrs dup length cclen exch sub exch putinterval 
         /cc exch def
@@ -284,8 +284,6 @@ begin
         msgbits midlen cclen add enc length add term putinterval
 
     } ifelse
-
-asdf
 
     % Lookup the most appropriate symbol specification
     /metrics [
@@ -865,6 +863,8 @@ asdf
 end
 /setpacking where {pop setpacking} if
 
+%245 125 moveto (01234567) (encoding=numeric) /qrcode /uk.co.terryburton.bwipp findresource exec
+%245 125 moveto (AC-42) (encoding=alphanumeric) /qrcode /uk.co.terryburton.bwipp findresource exec
+245 125 moveto (AC-42) (encoding=byte) /qrcode /uk.co.terryburton.bwipp findresource exec
 %245 125 moveto <935fe4aa> (encoding=kanji eclevel=H) /qrcode /uk.co.terryburton.bwipp findresource exec
-245 125 moveto (01234567) (encoding=numeric) /qrcode /uk.co.terryburton.bwipp findresource exec
 
