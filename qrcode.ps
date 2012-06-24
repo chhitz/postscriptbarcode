@@ -260,28 +260,25 @@ begin
             } loop
             /version i 10 2 string cvrs def
         } if
-    
+ 
         % Set the control character data for the version
         /mid mids encoding get def
-        /term (0000) def 
         /cclen cclens encoding get 0 get def
         version 0 1 getinterval (M) ne {
             version cvi 10 ge {/cclen cclens encoding get 1 get def} if  % Version 10-26
             version cvi 27 ge {/cclen cclens encoding get 2 get def} if  % Version 27-40
         } if
         /midlen mid length def
-        /termlen term length def
  
-        % Create the bitstream as mode_id character_count encoded_data terminator
+        % Create the bitstream as mode_id character_count encoded_data
         /enc barcode encs encoding get load exec def
         (0000000000000000) 0 cclen getinterval cclen string copy 
         dup barlen cvi 2 cclen string cvrs dup length cclen exch sub exch putinterval 
         /cc exch def
-        /msgbits midlen cclen add enc length add termlen add string def
+        /msgbits midlen cclen add enc length add string def
         msgbits 0 mid putinterval
         msgbits midlen cc putinterval
         msgbits midlen cclen add enc putinterval
-        msgbits midlen cclen add enc length add term putinterval
 
     } ifelse
 
@@ -370,9 +367,23 @@ begin
     /dcpb dcws ecb1 ecb2 add idiv def                 % Base data codewords per block
     /ecpb ncws ecb1 ecb2 add idiv dcpb sub def        % Error correction codewords per block
 
+    % Complete the message bits by adding the terminator, truncated if neccessary
+    /terms <<
+        /M1 (000)
+        /M2 (00000)
+        /M3 (0000000)
+        /M4 (000000000)
+    >> def
+    /term terms version known {terms version get} {(0000)} ifelse def
+    /term term 0 dmod msgbits length sub term length 2 copy gt {exch} if pop getinterval def
+    msgbits length term length add string
+    dup 0 msgbits putinterval
+    dup msgbits length term putinterval
+    /msgbits exch def
+    
     % Expand the message bits by adding padding as necessary
     /pad dmod string def
-    0 4 dmod 1 sub {pad exch (0000) putinterval} for
+    0 1 pad length 1 sub {pad exch 48 put} for
     pad 0 msgbits putinterval
     /padstrs [ (11101100) (00010001) ] def
     /padnum 0 def
@@ -863,8 +874,19 @@ begin
 end
 /setpacking where {pop setpacking} if
 
-%245 125 moveto (01234567) (encoding=numeric) /qrcode /uk.co.terryburton.bwipp findresource exec
+/abc 10000 string def
+0 1 9999 {abc exch 49 put} for
+
+0 1 10000 {
+    /i exch def
+    abc 0 i getinterval (encoding=numeric dontdraw) /qrcode /uk.co.terryburton.bwipp findresource exec pop
+    i == flush
+} for
+
+
+245 125 moveto (01234567) (encoding=numeric) /qrcode /uk.co.terryburton.bwipp findresource exec
 %245 125 moveto (AC-42) (encoding=alphanumeric) /qrcode /uk.co.terryburton.bwipp findresource exec
-245 125 moveto (AC-42) (encoding=byte) /qrcode /uk.co.terryburton.bwipp findresource exec
+%245 125 moveto (AC-42) (encoding=byte dontdraw) /qrcode /uk.co.terryburton.bwipp findresource exec
 %245 125 moveto <935fe4aa> (encoding=kanji eclevel=H) /qrcode /uk.co.terryburton.bwipp findresource exec
+
 
