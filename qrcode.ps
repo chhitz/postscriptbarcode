@@ -93,7 +93,7 @@ begin
                       468   535   619   667   758   854   938  1046  1153  1249    % 11-L - 20-L
                      1352  1460  1588  1704  1853  1990  2132  2223  2369  2520    % 21-L - 30-L
                      2677  2840  3009  3183  3351  3537  3729  3927  4087  4296 ]  % 31-L - 40-L
-                /M [   20    38    61    90   122   154   178   221   262   331    % 1-M  - 10-M
+                /M [   20    38    61    90   122   154   178   221   262   311    % 1-M  - 10-M
                       366   419   483   528   600   656   734   816   909   970    % 11-M - 20-M
                      1035  1134  1248  1326  1451  1542  1637  1732  1839  1994    % 21-M - 30-M
                      2113  2238  2369  2506  2632  2780  2894  3054  3220  3391 ]  % 31-M - 40-M
@@ -356,16 +356,21 @@ begin
         /ecb2 m 7 get eclval 2 mul 1 add get def      % Second error correction blocks
         /okay true def
         format frmt ne {/okay false def} if           % The format must match that supplied
-        version (unset) ne version vers ne and {/okay false def} if  % The version must match that supplied
+%        version (unset) ne version vers ne and {/okay false def} if  % The version must match that supplied
         msgbits length dmod gt {/okay false def} if   % Bitstream must fit into data modules
         ecb1 -1 eq ecb2 -1 eq or {/okay false def} if % Error correction level must be valid
         okay {exit} if
         /i i 1 add def
     } loop
+
+version vers ne {asdf} if  % TODO version selection testing
+
     /format frmt def
     /version vers def
     /dcpb dcws ecb1 ecb2 add idiv def                 % Base data codewords per block
     /ecpb ncws ecb1 ecb2 add idiv dcpb sub def        % Error correction codewords per block
+
+
 
     % Complete the message bits by adding the terminator, truncated if neccessary
     /terms <<
@@ -879,7 +884,7 @@ end
 
 0 1 10000 {
     /i exch def
-    abc 0 i getinterval (encoding=numeric dontdraw) /qrcode /uk.co.terryburton.bwipp findresource exec pop
+    abc 0 i getinterval (encoding=numeric eclevel=L dontdraw) /qrcode /uk.co.terryburton.bwipp findresource exec pop
     i == flush
 } for
 
