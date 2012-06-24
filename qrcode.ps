@@ -60,7 +60,6 @@ begin
     eclevel (unset) eq {/eclevel (M) def} if
 
     % Default encoding is byte unless raw is given
-    encoding (unset) eq {/encoding (byte) def} if
     raw {/encoding (raw) def} if
 
     % Convert from input into message bitstream
@@ -250,6 +249,31 @@ begin
             } loop
             out
         } bind def
+
+        % Determine a compact encoding for the data
+        encoding (unset) eq {
+            /numericokay true def
+            /alphanumericokay true def
+            /kanjiokay true def
+            /byteokay true def
+            barlen 2 mod 0 ne {/kanjiokay false def} if
+            0 1 barlen 1 sub {
+                /i exch def
+                /barchar barcode i get def
+                barchar 48 lt barchar 57 gt or {/numericokay false def} if
+                charvals barchar known not {/alphanumericokay false def} if
+                i 2 mod 0 eq {
+                    barchar 16#81 lt barchar 16#9F gt or
+                    barchar 16#E0 lt barchar 16#EB gt or and {
+                        /kanjiokay false def
+                    } if
+                } if
+            } for
+            byteokay         {/encoding (byte) def} if
+            kanjiokay        {/encoding (kanji) def} if
+            alphanumericokay {/encoding (alphanumeric) def} if
+            numericokay      {/encoding (numeric) def} if
+        } if
 
         % Determine smallest symbol version to hold given amount of data
         version (unset) eq {
@@ -878,19 +902,5 @@ begin
 end
 /setpacking where {pop setpacking} if
 
-/abc 10000 string def
-0 1 9999 {abc exch 49 put} for
-
-0 1 10000 {
-    /i exch def
-    abc 0 i getinterval (encoding=numeric eclevel=L dontdraw) /qrcode /uk.co.terryburton.bwipp findresource exec pop
-    i == flush
-} for
-
-
-245 125 moveto (01234567) (encoding=numeric) /qrcode /uk.co.terryburton.bwipp findresource exec
-%245 125 moveto (AC-42) (encoding=alphanumeric) /qrcode /uk.co.terryburton.bwipp findresource exec
-%245 125 moveto (AC-42) (encoding=byte dontdraw) /qrcode /uk.co.terryburton.bwipp findresource exec
-%245 125 moveto <935fe4aa> (encoding=kanji eclevel=H) /qrcode /uk.co.terryburton.bwipp findresource exec
-
+245 125 moveto (654321) () /qrcode /uk.co.terryburton.bwipp findresource exec
 
