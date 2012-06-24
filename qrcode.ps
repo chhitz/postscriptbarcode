@@ -103,7 +103,7 @@ begin
                      1499  1618  1700  1787  1867  1966  2071  2181  2298  2420 ]  % 31-Q - 40-Q
                 /H [   10    20    35    50    64    84    93   122   143   174    % 1-H  - 10-H
                       200   227   259   283   321   365   408   452   493   557    % 11-H - 20-H
-                      557   640   672   744   779   864   910   958  1016  1080    % 21-H - 30-H
+                      587   640   672   744   779   864   910   958  1016  1080    % 21-H - 30-H
                      1150  1226  1307  1394  1431  1530  1591  1658  1774  1852 ]  % 31-H - 40-H
             >>
             /byte <<
@@ -255,7 +255,7 @@ begin
         version (unset) eq {
             /caps caps encoding get eclevel get def
             /i 1 def {
-                barlen caps i 1 sub get le {exit} if 
+                barlen encoding (kanji) eq {2 idiv} if caps i 1 sub get le {exit} if 
                 /i i 1 add def
             } loop
             /version i 10 2 string cvrs def
@@ -273,7 +273,8 @@ begin
         % Create the bitstream as mode_id character_count encoded_data
         /enc barcode encs encoding get load exec def
         (0000000000000000) 0 cclen getinterval cclen string copy 
-        dup barlen cvi 2 cclen string cvrs dup length cclen exch sub exch putinterval 
+        dup barlen encoding (kanji) eq {2 idiv} if cvi
+        2 cclen string cvrs dup length cclen exch sub exch putinterval 
         /cc exch def
         /msgbits midlen cclen add enc length add string def
         msgbits 0 mid putinterval
@@ -356,14 +357,12 @@ begin
         /ecb2 m 7 get eclval 2 mul 1 add get def      % Second error correction blocks
         /okay true def
         format frmt ne {/okay false def} if           % The format must match that supplied
-%        version (unset) ne version vers ne and {/okay false def} if  % The version must match that supplied
+        version (unset) ne version vers ne and {/okay false def} if  % The version must match that supplied
         msgbits length dmod gt {/okay false def} if   % Bitstream must fit into data modules
         ecb1 -1 eq ecb2 -1 eq or {/okay false def} if % Error correction level must be valid
         okay {exit} if
         /i i 1 add def
     } loop
-
-version vers ne {asdf} if  % TODO version selection testing
 
     /format frmt def
     /version vers def
