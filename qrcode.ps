@@ -53,13 +53,11 @@ begin
 
     /barlen barcode length def
 
-    % Default to error correction level M
+    % Default error correction level
     eclevel (unset) eq {/eclevel format (full) eq {(M)} {(L)} ifelse def} if
 
-    % Default encoding is byte unless raw is given
-    raw {/encoding (raw) def} if
-
     % Convert from input into message bitstream
+    raw {/encoding (raw) def} if
     encoding (raw) eq {
         /msgbits barcode def 
     } {
@@ -428,8 +426,6 @@ begin
     /version vers def
     /dcpb dcws ecb1 ecb2 add idiv def                 % Base data codewords per block
     /ecpb ncws ecb1 ecb2 add idiv dcpb sub def        % Error correction codewords per block
-
-
 
     % Complete the message bits by adding the terminator, truncated if neccessary
     /terms <<
