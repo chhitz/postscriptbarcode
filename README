@@ -1,0 +1,15 @@
+2D_paths.patch testing branch
+
+Considered as a replacement for the existing imagemask based renderer.
+
+Please test and join the discussion at:
+
+http://code.google.com/p/postscriptbarcode/issues/detail?id=38
+
+Pay particular attention to the composite style barcodes.
+
+
+Thanks,
+
+Terry
+
