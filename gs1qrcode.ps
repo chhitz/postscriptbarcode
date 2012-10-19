@@ -1013,7 +1013,7 @@ end
 % --BEGIN ENCODER gs1qrcode--
 % --REQUIRES qrcode--
 % --DESC: GS1 QR Code
-% --EXAM: (01)03453120000011(8200)http://www.abc.net/(10)ABCD1234(410)9501101020917
+% --EXAM: (01)03453120000011(8200)http://www.abc.net(10)ABCD1234(410)9501101020917
 % --EXOP:
 % --RNDR: renmatrix
 /setpacking where {pop currentpacking true setpacking} if
@@ -1151,6 +1151,6 @@ end
 /setpacking where {pop setpacking} if
 % --END ENCODER gs1qrcode--
 
-50 150 moveto ((01)03453120000011(8200)http://www.abc.net/(10)ABCD1234(410)9501101020917) () /gs1qrcode /uk.co.terryburton.bwipp findresource exec
+50 150 moveto ((01)03453120000011(8200)http://www.abc.net(10)ABCD1234(410)9501101020917) () /gs1qrcode /uk.co.terryburton.bwipp findresource exec
 
 showpage
